@@ -30,8 +30,8 @@ namespace DragonMail.Web.Controllers
             {
                 var queryOptions = new FeedOptions { MaxItemCount = -1 };
                 var mailQuery = client.CreateDocumentQuery<DSMail>(UriFactory.CreateDocumentCollectionUri(DATABASE_NAME, COLLECTION_NAME), queryOptions)
-                    .Where(m => m.Queue == queueName);
-
+                    .Where(m => m.Queue == queueName)
+                    .OrderByDescending(m => m.SentDate);
                 model.MailMessages = mailQuery.ToList();
             }
 

@@ -77,86 +77,10 @@ namespace DragonMail.IncomingMail
                 mail.HtmlBody = mimeMessage.HtmlBody;
                 mail.TextBody = mimeMessage.TextBody;
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
-
+                mail.SentDate = DateTime.Now.ToString();
                 parsedMails.Add(mail);
             }
             return parsedMails;
-        }
-        //private static readonly string _crlf = "\r\n";
-        //private static DSMail ParseMessage(string Message)
-        //{
-        //    DSMail result = new DSMail();
-
-        //    try
-        //    {
-        //        string[] messageFragments = Message.Split(_crlf.ToCharArray());
-        //        //is the response for this message OK?
-        //        //if (!messageFragments[0].StartsWith("+OK"))
-        //            //throw new Exception("Error: Message is not in appropriate format.");
-
-        //        string ContentType = "";
-        //        bool ReadingMessage = false;
-        //        bool LookingForStartOfMessage = false;
-        //        bool ReadingTo = false;
-        //        foreach (string s in messageFragments)
-        //        {
-        //            //set from
-        //            if (s.StartsWith("From:"))
-        //                result.From = s.Split('"')[1];
-        //            //set to
-        //            if (s.StartsWith("To:"))
-        //            {
-        //                ReadingTo = true;
-        //                result.To = new string[] {
-        //                        s.Split('<')[1].Replace(">","").Replace(",","") };
-        //            }
-        //            //reading to fields
-        //            if (!s.StartsWith("To:") && !s.StartsWith("Subject:") && ReadingTo &&
-        //              !string.IsNullOrEmpty(s))
-        //            {
-        //                List<string> to = result.To.ToList();
-        //                to.Add(s.Split('<')[1].Replace(">", "").Replace(",", ""));
-        //                result.To = to.ToArray();
-        //            }
-        //            //set subject;
-        //            if (s.StartsWith("Subject:"))
-        //            {
-        //                ReadingTo = false;
-        //                result.Subject = s.Substring(9);
-        //            }
-        //            //set date
-        //            if (s.StartsWith("Date:"))
-        //                result.SentDate = s.Substring(6);
-        //            //set content type and start looking for message
-        //            if (s.StartsWith("Content-Type:") && (s.Substring(14) == "text/plain;"
-        //               || s.Substring(14) == "text/html;"))
-        //            {
-        //                ContentType = s.Substring(14);
-        //                LookingForStartOfMessage = true;
-        //            }
-        //            //read message
-        //            if (!string.IsNullOrEmpty(ContentType) && LookingForStartOfMessage &&
-        //               string.IsNullOrEmpty(s))
-        //            {
-        //                LookingForStartOfMessage = false;
-        //                ReadingMessage = true;
-        //            }
-        //            //found end of message
-        //            if (ReadingMessage && s.StartsWith("------=_NextPart"))
-        //                ReadingMessage = false;
-        //            //reading text part of multi-part message
-        //            if (ReadingMessage && ContentType == "text/plain;" && !s.Contains("charset") && !s.Contains("Content-Transfer-Encoding"))
-        //                result.TextBody += s;
-        //            //reading html part of multi-part message
-        //            if (ReadingMessage && ContentType == "text/html;" && !s.Contains("charset") && !s.Contains("Content-Transfer-Encoding"))
-        //                result.HtmlBody += s;
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw;
-        //    }
-        //    return result;
-        //}
+        }      
     }
 }
