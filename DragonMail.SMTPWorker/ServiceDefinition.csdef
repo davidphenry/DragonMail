@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="DragonMail.SMTPWorker" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2015-04.2.6">
+  <WorkerRole name="DragonMail.SMTPWorkerRole" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="DataConnectionString" />
+      <Setting name="ProcessQueueName" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" />
+    </ConfigurationSettings>
+    <Endpoints>
+      <InputEndpoint name="SMTPEndpoint" protocol="tcp" port="25" />
+    </Endpoints>
+  </WorkerRole>
+</ServiceDefinition>

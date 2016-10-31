@@ -1,0 +1,43 @@
+﻿@{
+    ViewBag.Title = "DragonMail";
+}
+
+<div class="jumbotron">
+    <h1>DragonMail</h1>
+    <p class="lead">Dynamic email</p>
+</div>
+
+@if(Model.MailMessages.Count > 0)
+{
+    <h2>@Model.MailBox</h2>
+}
+
+@foreach (var mailMessage in Model.MailMessages)
+{
+    <div class="row">
+        <div class="col-md-12">
+            From:  @mailMessage.FromEmail
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            Subject: @mailMessage.Subject
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            @if (!string.IsNullOrEmpty(mailMessage.HtmlBody))
+            {
+
+                @Html.Raw(mailMessage.HtmlBody);
+
+            }
+            else {
+                Html.Raw(mailMessage.TextBody);
+            }
+
+        </div>
+    </div>
+    <hr />
+    <hr />
+}

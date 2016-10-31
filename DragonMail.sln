@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonMail.Web", "DragonMail.Web\DragonMail.Web.csproj", "{74A0E06E-317A-4655-9516-21868B5A6091}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonMail.IncomingMail", "DragonMail.IncomingMail\DragonMail.IncomingMail.csproj", "{B04EBC9C-8B95-43E3-AECF-3D0E2164B833}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonMail.DTO", "DragonMail.DTO\DragonMail.DTO.csproj", "{00E02893-0B14-4C12-947E-757C73BCC3BF}"
+EndProject
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "DragonMail.SMTPWorker", "DragonMail.SMTPWorker\DragonMail.SMTPWorker.ccproj", "{D3FD7986-8C4D-43A9-848E-9EEB164621FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonMail.Tests", "DragonMail.Tests\DragonMail.Tests.csproj", "{6135CD36-E674-470C-88FD-E9753C77581A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonMail.SMTPWorkerRole", "DragonMail.SMTPWorkerRole\DragonMail.SMTPWorkerRole.csproj", "{9F9FE0BE-6A44-4D8E-AFE7-AD56C787B9E7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{74A0E06E-317A-4655-9516-21868B5A6091}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74A0E06E-317A-4655-9516-21868B5A6091}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74A0E06E-317A-4655-9516-21868B5A6091}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74A0E06E-317A-4655-9516-21868B5A6091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B04EBC9C-8B95-43E3-AECF-3D0E2164B833}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B04EBC9C-8B95-43E3-AECF-3D0E2164B833}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B04EBC9C-8B95-43E3-AECF-3D0E2164B833}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B04EBC9C-8B95-43E3-AECF-3D0E2164B833}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00E02893-0B14-4C12-947E-757C73BCC3BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00E02893-0B14-4C12-947E-757C73BCC3BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00E02893-0B14-4C12-947E-757C73BCC3BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00E02893-0B14-4C12-947E-757C73BCC3BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3FD7986-8C4D-43A9-848E-9EEB164621FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3FD7986-8C4D-43A9-848E-9EEB164621FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3FD7986-8C4D-43A9-848E-9EEB164621FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3FD7986-8C4D-43A9-848E-9EEB164621FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6135CD36-E674-470C-88FD-E9753C77581A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6135CD36-E674-470C-88FD-E9753C77581A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6135CD36-E674-470C-88FD-E9753C77581A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6135CD36-E674-470C-88FD-E9753C77581A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F9FE0BE-6A44-4D8E-AFE7-AD56C787B9E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9FE0BE-6A44-4D8E-AFE7-AD56C787B9E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F9FE0BE-6A44-4D8E-AFE7-AD56C787B9E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F9FE0BE-6A44-4D8E-AFE7-AD56C787B9E7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

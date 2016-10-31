@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="DragonMail.SMTPWorker" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
+  <Role name="DragonMail.SMTPWorkerRole">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=dmcloudservices;AccountKey=BhWY9FglcMw0sdFo44RGtOR3qLiwUvlRyZa2LBI78227PJNiEhxLh4bnncFbpOSO5rbEbjSLCtMpl+oVoyZVtQ==" />
+      <Setting name="ProcessQueueName" value="incoming" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="3423e064-c35d-4a9f-bdc6-623ece649e88" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>
