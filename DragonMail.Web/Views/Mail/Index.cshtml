@@ -9,7 +9,7 @@
 
 @if(Model.MailMessages.Count > 0)
 {
-    <h2>@Model.MailBox</h2>
+    <h2>@Model.MailBox : @Html.ActionLink("Refresh", "Index", new { mailBox = Model.MailBox})</h2>
 }
 
 @foreach (var mailMessage in Model.MailMessages)
