@@ -15,7 +15,10 @@ namespace DragonMail.Web.Models
 
         public string MailBox { get; set; }
         public List<DSMail> MailMessages { get; set; }
+
+        public DSMail SelectedItem { get; set; }
     }
+
 
 
 }

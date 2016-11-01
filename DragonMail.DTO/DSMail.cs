@@ -24,17 +24,7 @@ namespace DragonMail.DTO
         public string TextBody { get; set; }
         public string HtmlBody { get; set; }
         public DateTime? SentDate { get; set; }
-        public string Queue { get; set; }
-        public string LogMessage()
-        {
-            string miniContent = Content;
-            if (string.IsNullOrEmpty(Content))
-                miniContent = "NB";
-            else if (Content.Length > 25)
-                miniContent = Content.Substring(0, 24);
-            
-            return string.Format("To:{0};From:{1};Content:{2}", ToEmail, FromEmail, miniContent);
-        }
+        public string Queue { get; set; }       
 
         public static string MessageQueue(string email)
         {
@@ -49,6 +39,23 @@ namespace DragonMail.DTO
             if (Attachments == null)
                 Attachments = new Dictionary<string, byte[]>();
             Attachments.Add(fileName, fileBytes);
+        }
+
+        public string TextPreview()
+        {
+            string miniContent = TextBody;
+            if (string.IsNullOrEmpty(TextBody))
+                miniContent = "NB";
+            else if (TextBody.Length > 100)
+                miniContent = TextBody.Substring(0, 99);
+            return miniContent;
+        }
+
+        public int AttachmentCount()
+        {
+            if (Attachments == null)
+                return 0;
+            return Attachments.Count;
         }
     }
 }

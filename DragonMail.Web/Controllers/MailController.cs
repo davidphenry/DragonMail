@@ -41,7 +41,7 @@ namespace DragonMail.Web.Controllers
         }
 
         // GET: Mail
-        public ActionResult Index(string mailBox = null)
+        public ActionResult Index(string id = null, string mailBox = null)
         {
             var model = new MailViewModel();
 
@@ -55,6 +55,11 @@ namespace DragonMail.Web.Controllers
                 .OrderByDescending(m => m.SentDate);
 
             model.MailMessages = mailQuery.ToList();
+            if (string.IsNullOrEmpty(id))
+                model.SelectedItem = model.MailMessages.FirstOrDefault();
+            else
+                model.SelectedItem = model.MailMessages.FirstOrDefault(m => m.Id == id);
+
 
             return View(model);
         }

@@ -19,16 +19,16 @@
                 </button>
                 @Html.ActionLink("DragonMail", "Index", "Mail", new { area = "" }, new { @class = "navbar-brand" })
             </div>
-            @using (Html.BeginForm("Index", "Mail"))
-            {
-                <div class="navbar-collapse collapse">
-
-                    <ul class="nav navbar-nav">
-                        Check MailBox:
-                        <input type="text" id="mailBox" name="mailBox" style="width: 225px" />
-                        <input type="submit" id="Search" value="Search" />  
-                    </ul>
-                </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav"></ul>
+                    @using (Html.BeginForm("Index", "Mail", FormMethod.Post, new { @class = "navbar-form navbar-left" }))
+                    {
+                        <div class="form-group">
+                            <input type="text" id="mailBox" name="mailBox" class="form-control" placeholder="DragonMail for...">
+                        </div>
+                        <button type="submit" class="btn btn-default">Go!</button>
+                    }
+            </div>
             }
         </div>
     </div>

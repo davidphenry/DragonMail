@@ -1,55 +1,97 @@
-﻿@{
+﻿@using DragonMail.DTO
+@{
     ViewBag.Title = "DragonMail";
 }
 
-<div class="jumbotron">
-    <h1>DragonMail</h1>
-    <p class="lead">Dynamic email</p>
-</div>
 
-@if (Model.MailMessages.Count > 0)
+@if (string.IsNullOrEmpty(Model.MailBox))
 {
-    <h2>@Model.MailBox : @Html.ActionLink("Refresh", "Index", new { mailBox = Model.MailBox })</h2>
+    <div class="jumbotron">
+        <h1>DragonMail</h1>
+        <p class="lead">Dynamic email</p>
+    </div>
+}
+else
+{
+    <div class="well">
+        <h3>DragonMail for: <span class="label label-default">@Model.MailBox</span></h3>
+        @Html.ActionLink("Refresh", "Index", new { mailBox = Model.MailBox })
+    </div>
 }
 
-@foreach (var mailMessage in Model.MailMessages)
+@if (Model.MailMessages != null && Model.MailMessages.Count > 0)
 {
     <div class="row">
-        <div class="col-md-12">
-            From:  @mailMessage.FromEmail
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            Subject: @mailMessage.Subject
-        </div>
-    </div>
-    if (mailMessage.Attachments != null && mailMessage.Attachments.Count > 0)
-    {
-        <div class="row">
-            <div class="col-md-12">
-                Attachments:
-                @foreach (KeyValuePair<string, byte[]> attachment in mailMessage.Attachments)
-                {                    
-                    @Html.ActionLink(attachment.Key, "Download",  new { id = mailMessage.Id, fileName = attachment.Key });
+        <div class="col-sm-3">
+            <div class="list-group">
+
+                @foreach (DSMail mailMessage in Model.MailMessages)
+                {
+                    string css = "list-group-item";
+                    if (Model.SelectedItem != null && mailMessage.Id == Model.SelectedItem.Id)
+                    {
+                        css += " active";
+                    }
+                    <div onclick="location.href ='@Url.Action("Index", "Mail", new { mailBox = Model.MailBox, id = mailMessage.Id })'" class="@css">
+
+                        <span class="badge">@mailMessage.AttachmentCount()</span>
+                        <h4 class="list-group-item-heading">@mailMessage.FromName</h4>
+                        @Html.ActionLink(mailMessage.Subject, "Index", new { mailBox = Model.MailBox, id = mailMessage.Id }, new { @class = "list-group-item-heading" })
+                        <p class="lit-group-item-text">@mailMessage.TextPreview()</p>
+
+                    </div>
                 }
             </div>
         </div>
-    }
-    <div class="row">
-        <div class="col-md-12">
-            @if (!string.IsNullOrEmpty(mailMessage.HtmlBody))
-            {
+        <div class="col-sm-9">
+            <div class="jumbotron">
+                @if (Model.SelectedItem == null)
+                {
+                    <span>No Message Selected!</span>
+                }
+                else {
+                    <div class="row">
+                        <div class="col-md-12">
+                            From: <a href="mailto:@Model.SelectedItem.FromEmail">@Model.SelectedItem.FromName </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            Subject: @Model.SelectedItem.Subject
+                        </div>
+                    </div>
+                    if (Model.SelectedItem.Attachments != null && Model.SelectedItem.Attachments.Count > 0)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                Attachments:
+                                @foreach (KeyValuePair<string, byte[]> attachment in Model.SelectedItem.Attachments)
+                                {
+                                    @Html.ActionLink(attachment.Key, "Download", new { id = Model.SelectedItem.Id, fileName = attachment.Key });
+                                }
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-12">
 
-                @Html.Raw(mailMessage.HtmlBody);
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    @if (!string.IsNullOrEmpty(Model.SelectedItem.HtmlBody))
+                                    {
+                                        @Html.Raw(Model.SelectedItem.HtmlBody);
 
-            }
-            else {
-                Html.Raw(mailMessage.TextBody);
-            }
+                                    }
+                                    else {
+                                        @Html.Raw(Model.SelectedItem.TextBody);
+                                    }
+                                </div>
+                            </div>
 
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
-    <hr />
-    <hr />
 }
