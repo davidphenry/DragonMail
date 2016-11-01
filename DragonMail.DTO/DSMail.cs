@@ -11,6 +11,9 @@ namespace DragonMail.DTO
         public DSMail(){}
         public string Id { get; set; }
 
+        public string MessageId { get; set; }
+
+
         public string ToName { get; set; }
         public string ToEmail { get; set; }
         public string FromName{ get; set; }

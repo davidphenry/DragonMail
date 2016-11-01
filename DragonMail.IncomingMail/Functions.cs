@@ -91,7 +91,7 @@ namespace DragonMail.IncomingMail
                 mail.TextBody = mimeMessage.TextBody;
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
                 mail.SentDate = DateTime.Now;
-                mail.Id = messageId;
+                mail.MessageId = messageId;
 
                 if (mimeMessage.Attachments == null)
                     continue;

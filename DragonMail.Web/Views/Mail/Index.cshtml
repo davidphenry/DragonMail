@@ -7,9 +7,9 @@
     <p class="lead">Dynamic email</p>
 </div>
 
-@if(Model.MailMessages.Count > 0)
+@if (Model.MailMessages.Count > 0)
 {
-    <h2>@Model.MailBox : @Html.ActionLink("Refresh", "Index", new { mailBox = Model.MailBox})</h2>
+    <h2>@Model.MailBox : @Html.ActionLink("Refresh", "Index", new { mailBox = Model.MailBox })</h2>
 }
 
 @foreach (var mailMessage in Model.MailMessages)
@@ -26,15 +26,15 @@
     </div>
     if (mailMessage.Attachments != null && mailMessage.Attachments.Count > 0)
     {
-    <div class="row">
-        <div class="col-md-12">
-            Attachments: 
-            @foreach (var attachment in mailMessage.Attachments)
-            {
-                @attachment.Key;
-            }
+        <div class="row">
+            <div class="col-md-12">
+                Attachments:
+                @foreach (KeyValuePair<string, byte[]> attachment in mailMessage.Attachments)
+                {                    
+                    @Html.ActionLink(attachment.Key, "Download",  new { id = mailMessage.Id, fileName = attachment.Key });
+                }
+            </div>
         </div>
-    </div>
     }
     <div class="row">
         <div class="col-md-12">
