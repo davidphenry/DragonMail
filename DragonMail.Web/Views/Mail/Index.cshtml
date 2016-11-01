@@ -24,6 +24,18 @@
             Subject: @mailMessage.Subject
         </div>
     </div>
+    if (mailMessage.Attachments != null && mailMessage.Attachments.Count > 0)
+    {
+    <div class="row">
+        <div class="col-md-12">
+            Attachments: 
+            @foreach (var attachment in mailMessage.Attachments)
+            {
+                @attachment.Key;
+            }
+        </div>
+    </div>
+    }
     <div class="row">
         <div class="col-md-12">
             @if (!string.IsNullOrEmpty(mailMessage.HtmlBody))

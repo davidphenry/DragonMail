@@ -9,13 +9,14 @@ namespace DragonMail.DTO
     public class DSMail
     {
         public DSMail(){}
-       
+        public string Id { get; set; }
+
         public string ToName { get; set; }
         public string ToEmail { get; set; }
         public string FromName{ get; set; }
         public string FromEmail { get; set; }
-        public string Content { get; set; }
-        public byte[] Attachments { get; set; }
+        public string Content { get; set; }        
+        public Dictionary<string, byte[]> Attachments { get; set; }
         public string Subject { get; set; }
         public string TextBody { get; set; }
         public string HtmlBody { get; set; }
@@ -38,6 +39,13 @@ namespace DragonMail.DTO
                 return string.Empty;
 
             return email.ToLower().Replace('@', '-').Replace('.', '-');
+        }
+
+        public void AddAttachment(string fileName, byte[] fileBytes)
+        {
+            if (Attachments == null)
+                Attachments = new Dictionary<string, byte[]>();
+            Attachments.Add(fileName, fileBytes);
         }
     }
 }

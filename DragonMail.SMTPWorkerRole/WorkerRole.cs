@@ -15,9 +15,10 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using System.Text;
 using Newtonsoft.Json;
 using DragonMail.DTO;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace WorkerRole1
-{   
+{
 
     public class WorkerRole : RoleEntryPoint
     {
@@ -54,23 +55,26 @@ namespace WorkerRole1
         private static void ReceiveMessage(TcpListener listener)
         {
             TcpClient c = listener.AcceptTcpClient();
-
             string text = HandleRequest(c);
+            string id = Guid.NewGuid().ToString();
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(RoleEnvironment.GetConfigurationSettingValue("DataConnectionString"));
-
-            var _queueClient = storageAccount.CreateCloudQueueClient();
-            CloudQueue queue = _queueClient.GetQueueReference(RoleEnvironment.GetConfigurationSettingValue("ProcessQueueName"));
+            var storageAccount = CloudStorageAccount.Parse(RoleEnvironment.GetConfigurationSettingValue("DataConnectionString"));
+            var queueClient = storageAccount.CreateCloudQueueClient();
+            CloudQueue queue = queueClient.GetQueueReference(RoleEnvironment.GetConfigurationSettingValue("ProcessQueueName"));
             queue.CreateIfNotExists();
-            if (text != null && text.Length > 0)
+            if (string.IsNullOrEmpty(text))
             {
-                Trace.WriteLine("Parsing Email", "Information");
-
-                queue.AddMessage(new CloudQueueMessage(text));
-            }
-            else
                 queue.AddMessage(new CloudQueueMessage("misfire " + DateTime.Now.ToString()));
+                return;
+            }
 
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(RoleEnvironment.GetConfigurationSettingValue("ProcessContainerName"));
+            container.CreateIfNotExists();
+            var blob = container.GetBlockBlobReference(id);
+            blob.UploadText(text);
+
+            queue.AddMessage(new CloudQueueMessage(id));
             c.Close();
         }
 
@@ -78,15 +82,13 @@ namespace WorkerRole1
         public static string HandleRequest(TcpClient client)
         {
             Write(client, "220 localhost -- Fake proxy server");
-            //var msgBldr = new StringBuilder();
-            var emailDTO = new SMTPEmailDTO();
-            string strMessage = String.Empty;
+            string messageData = null;
             while (true)
             {
+                string tcpMessage = null;
                 try
                 {
-                    strMessage = Read(client);
-                    //msgBldr.Append(strMessage);
+                    tcpMessage = Read(client);
                 }
                 catch (Exception e)
                 {
@@ -94,42 +96,26 @@ namespace WorkerRole1
                     break;
                 }
 
-                if (strMessage.Length > 0)
+                if (tcpMessage.Length <= 0)
+                    continue;
+
+                if (tcpMessage.StartsWith("QUIT"))
                 {
-                    if (strMessage.StartsWith("QUIT"))
-                    {
-                        client.Close();
-                        break;//exit while
-                    }
-                    //message has successfully been received
-                    if (strMessage.StartsWith("EHLO"))
-                    {
-                        Write(client, "250 OK");
-                    }
-
-                    if (strMessage.StartsWith("RCPT TO"))
-                    {
-                        emailDTO.AddToAddress(SMTPEmailDTO.ParseLine(strMessage));
-                        Write(client, "250 OK");
-                    }
-
-                    if (strMessage.StartsWith("MAIL FROM"))
-                    {
-                        emailDTO.From = SMTPEmailDTO.ParseLine(strMessage);
-                        Write(client, "250 OK");
-                    }
-
-                    if (strMessage.StartsWith("DATA"))
-                    {
-                        Write(client, "354 Start mail input; end with");
-                        //msgBldr.Append(ReadData(client));
-                        emailDTO.Message = ReadData(client);
-                        Write(client, "250 OK");
-                    }
+                    client.Close();
+                    break;//exit while
+                }
+                if (tcpMessage.StartsWith("EHLO") || tcpMessage.StartsWith("RCPT TO") || tcpMessage.StartsWith("MAIL FROM"))
+                {
+                    Write(client, "250 OK");
+                }
+                else if (tcpMessage.StartsWith("DATA"))
+                {
+                    Write(client, "354 Start mail input; end with");
+                    messageData = ReadData(client);
+                    Write(client, "250 OK");
                 }
             }
-            //return msgBldr.ToString();
-            return JsonConvert.SerializeObject(emailDTO);
+            return messageData;
         }
         private static void Write(TcpClient client, String strMessage)
         {

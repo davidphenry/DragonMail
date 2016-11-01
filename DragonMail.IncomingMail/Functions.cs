@@ -14,6 +14,7 @@ using MimeKit;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents;
 using System.Net;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DragonMail.IncomingMail
 {
@@ -23,16 +24,15 @@ namespace DragonMail.IncomingMail
         {
             try
             {
-                var dsMail = ParseMessage(message);
+                var dsMail = await ParseMessage(message);
                 await WriteMessage(dsMail);
-
             }
             catch (Exception e)
             {
                 throw;
             }
         }
-        private static async Task WriteMessage(IEnumerable<DSMail> messages)
+        internal static async Task WriteMessage(IEnumerable<DSMail> messages)
         {
             string docDBendPoint = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
             string docDBKey = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_KEY);
@@ -47,23 +47,34 @@ namespace DragonMail.IncomingMail
                     await client.CreateDocumentAsync(messageUri, message);
                 }
             }
+            
         }
 
-        private static IEnumerable<DSMail> ParseMessage(string Message)
+        internal static async Task<IEnumerable<DSMail>> ParseMessage(string messageId)
         {
-            var smtpEmail = JsonConvert.DeserializeObject<SMTPEmailDTO>(Message);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.WEBJOB_STORAGE));
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference("rawmail");
+            await container.CreateIfNotExistsAsync();
+            var blob = container.GetBlockBlobReference(messageId);
 
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream, Encoding.UTF8);
-            writer.Write(smtpEmail.Message);
-            writer.Flush();
-            stream.Seek(0, SeekOrigin.Begin);
+            MimeMessage mimeMessage;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                await blob.DownloadToStreamAsync(ms);
+                mimeMessage = MimeMessage.Load(new MemoryStream(ms.ToArray()));
+            }
 
-            var mimeMessage = MimeMessage.Load(stream);
+            return MimeMessageToDSMail(messageId, mimeMessage);
+        }
+        internal static IEnumerable<DSMail> MimeMessageToDSMail(string messageId, MimeMessage mimeMessage)
+        {
             var parsedMails = new List<DSMail>();
             foreach (var toAddress in mimeMessage.To)
             {
                 var mail = new DSMail();
+                parsedMails.Add(mail);
+
                 if (mimeMessage.From != null && mimeMessage.From.Count > 0)
                 {
                     var firstFrom = mimeMessage.From.First() as MailboxAddress;
@@ -79,9 +90,24 @@ namespace DragonMail.IncomingMail
                 mail.TextBody = mimeMessage.TextBody;
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
                 mail.SentDate = DateTime.Now;
-                parsedMails.Add(mail);
+                mail.Id = messageId;
+
+                if (mimeMessage.Attachments == null)
+                    continue;
+
+                foreach (var attachment in mimeMessage.Attachments.OfType<MimePart>())
+                {
+                    var fileName = attachment.FileName;
+                    byte[] fileBytes;                    
+                    using (var stream = new MemoryStream())
+                    {
+                        attachment.ContentObject.DecodeTo(stream);
+                        fileBytes = stream.ToArray();
+                    }
+                    mail.AddAttachment(fileName, fileBytes);
+                }
             }
             return parsedMails;
-        }      
+        }
     }
 }
