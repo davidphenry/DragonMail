@@ -63,6 +63,7 @@ namespace DragonMail.IncomingMail
             {
                 await blob.DownloadToStreamAsync(ms);
                 mimeMessage = MimeMessage.Load(new MemoryStream(ms.ToArray()));
+                await blob.DeleteAsync();
             }
 
             return MimeMessageToDSMail(messageId, mimeMessage);
