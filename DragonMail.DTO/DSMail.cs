@@ -34,7 +34,10 @@ namespace DragonMail.DTO
 
         public static string MessageQueue(string email)
         {
-            return email.Replace('@', '-').Replace('.', '-');
+            if (string.IsNullOrEmpty(email))
+                return string.Empty;
+
+            return email.ToLower().Replace('@', '-').Replace('.', '-');
         }
     }
 }

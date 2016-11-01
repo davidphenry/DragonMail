@@ -36,7 +36,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - DragonMail</p>
+            <p>&copy; @DateTime.Now.Year - DragonMail - @typeof(DragonMail.Web.MvcApplication).Assembly.GetName().Version</p>
         </footer>
     </div>
 
