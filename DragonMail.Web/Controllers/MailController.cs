@@ -3,6 +3,7 @@ using DragonMail.Web.Models;
 using Microsoft.Azure.Documents.Client;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -10,11 +11,7 @@ using System.Web.Mvc;
 namespace DragonMail.Web.Controllers
 {
     public class MailController : Controller
-    {
-        private const string ENDPOINT_URI = "https://dragonmail.documents.azure.com:443/";
-        private const string DOCDB_KEY = "b4TqVBpGPZVbh9BahrDrkx22zfXa79GJNb1hUtklbOikI5cP3S0NXRyITuCmYRT1cEdi1sWgTYrWBd6cdwhdpg";
-        private const string DATABASE_NAME = "mailDB";
-        private const string COLLECTION_NAME = "mailColl";
+    {       
 
         // GET: Mail
         public ActionResult Index(string mailBox = null)
@@ -26,10 +23,15 @@ namespace DragonMail.Web.Controllers
 
             model.MailBox = mailBox;
             string queueName = DSMail.MessageQueue(string.Format("{0}@dragonmail.dragonspears.com", mailBox));
-            using (var client = new DocumentClient(new Uri(ENDPOINT_URI), DOCDB_KEY))
+
+            string docDBendPoint = ConfigurationManager.AppSettings.Get(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
+            string docDBKey = ConfigurationManager.AppSettings.Get(DTO.Constants.ConnectionSettings.DOCDB_KEY);
+
+            using (var client = new DocumentClient(new Uri(docDBendPoint), docDBKey))
             {
                 var queryOptions = new FeedOptions { MaxItemCount = -1 };
-                var mailQuery = client.CreateDocumentQuery<DSMail>(UriFactory.CreateDocumentCollectionUri(DATABASE_NAME, COLLECTION_NAME), queryOptions)
+                Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DTO.Constants.ConnectionSettings.DOCDB_DATABASE_NAME, DTO.Constants.ConnectionSettings.DOCDB_COLLECTION_NAME);
+                var mailQuery = client.CreateDocumentQuery<DSMail>(collectionUri, queryOptions)
                     .Where(m => m.Queue == queueName)
                     .OrderByDescending(m => m.SentDate);
                 model.MailMessages = mailQuery.ToList();

@@ -32,17 +32,18 @@ namespace DragonMail.IncomingMail
                 throw;
             }
         }
-        private const string ENDPOINT_URI = "https://dragonmail.documents.azure.com:443/";
-        private const string DOCDB_KEY = "b4TqVBpGPZVbh9BahrDrkx22zfXa79GJNb1hUtklbOikI5cP3S0NXRyITuCmYRT1cEdi1sWgTYrWBd6cdwhdpg";
-        private const string DATABASE_NAME= "mailDB";
-        private const string COLLECTION_NAME = "mailColl";
         private static async Task WriteMessage(IEnumerable<DSMail> messages)
         {
-            using (var client = new DocumentClient(new Uri(ENDPOINT_URI), DOCDB_KEY))
+            string docDBendPoint = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
+            string docDBKey = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_KEY);
+
+            Uri messageUri = UriFactory.CreateDocumentCollectionUri(DTO.Constants.ConnectionSettings.DOCDB_DATABASE_NAME,
+                DTO.Constants.ConnectionSettings.DOCDB_COLLECTION_NAME);
+
+            using (var client = new DocumentClient(new Uri(docDBendPoint), docDBKey))
             {
                 foreach (var message in messages)
                 {
-                    var messageUri = UriFactory.CreateDocumentCollectionUri(DATABASE_NAME, COLLECTION_NAME);
                     await client.CreateDocumentAsync(messageUri, message);
                 }
             }
