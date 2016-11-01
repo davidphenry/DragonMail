@@ -77,7 +77,7 @@ namespace DragonMail.IncomingMail
                 mail.HtmlBody = mimeMessage.HtmlBody;
                 mail.TextBody = mimeMessage.TextBody;
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
-                mail.SentDate = DateTime.Now.ToString();
+                mail.SentDate = DateTime.Now;
                 parsedMails.Add(mail);
             }
             return parsedMails;
