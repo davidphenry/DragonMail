@@ -34,7 +34,9 @@ else
                     }
                     <div onclick="location.href ='@Url.Action("Index", "Mail", new { mailBox = Model.MailBox, id = mailMessage.Id })'" class="@css">
 
-                        <span class="badge">@mailMessage.AttachmentCount()</span>
+                        <span class="badge">
+                            @(mailMessage.Attachments == null ? 0 : mailMessage.Attachments.Count)
+                        </span>
                         <h4 class="list-group-item-heading">@mailMessage.FromName</h4>
                         @Html.ActionLink(mailMessage.Subject, "Index", new { mailBox = Model.MailBox, id = mailMessage.Id }, new { @class = "list-group-item-heading" })
                         <p class="lit-group-item-text">@mailMessage.TextPreview()</p>
@@ -55,20 +57,19 @@ else
                             From: <a href="mailto:@Model.SelectedItem.FromEmail">@Model.SelectedItem.FromName </a>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            Subject: @Model.SelectedItem.Subject
-                        </div>
-                    </div>
                     if (Model.SelectedItem.Attachments != null && Model.SelectedItem.Attachments.Count > 0)
                     {
                         <div class="row">
                             <div class="col-md-12">
                                 Attachments:
-                                @foreach (KeyValuePair<string, byte[]> attachment in Model.SelectedItem.Attachments)
-                                {
-                                    @Html.ActionLink(attachment.Key, "Download", new { id = Model.SelectedItem.Id, fileName = attachment.Key });
-                                }
+                                <ul class="list-group">
+                                    @foreach (string attachment in Model.SelectedItem.Attachments)
+                                    {
+                                        <li class="list-group-item">
+                                            @Html.ActionLink(attachment, "Download", new { id = Model.SelectedItem.Id, fileName = attachment })
+                                        </li>
+                                    }
+                                </ul>
                             </div>
                         </div>
                     }
@@ -76,6 +77,9 @@ else
                         <div class="col-md-12">
 
                             <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">@Model.SelectedItem.Subject:</h3>
+                                </div>
                                 <div class="panel-body">
                                     @if (!string.IsNullOrEmpty(Model.SelectedItem.HtmlBody))
                                     {

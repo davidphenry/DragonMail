@@ -18,6 +18,11 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DragonMail.IncomingMail
 {
+    public class ParsedMail
+    {
+        public List<DSMail> Mail { get; set; }
+        public List<MimePart> Attachments { get; set; }
+    }
     public class Functions
     {
         public static async Task ProcessQueueMessageAsync([QueueTrigger("incoming")] string message, TextWriter log)
@@ -32,7 +37,7 @@ namespace DragonMail.IncomingMail
                 throw;
             }
         }
-        internal static async Task WriteMessage(IEnumerable<DSMail> messages)
+        internal static async Task WriteMessage(ParsedMail parsedMail)
         {
             string docDBendPoint = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
             string docDBKey = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_KEY);
@@ -42,15 +47,31 @@ namespace DragonMail.IncomingMail
 
             using (var client = new DocumentClient(new Uri(docDBendPoint), docDBKey))
             {
-                foreach (var message in messages)
+                foreach (var message in parsedMail.Mail)
                 {
-                    await client.CreateDocumentAsync(messageUri, message);
+                    var response = await client.CreateDocumentAsync(messageUri, message);
+
+                    if (!parsedMail.Attachments.Any())
+                        continue;
+
+                    foreach (var attachment in parsedMail.Attachments)
+                    {
+                        byte[] fileBytes;
+                        using (var stream = new MemoryStream())
+                        {
+                            attachment.ContentObject.DecodeTo(stream);
+                            fileBytes = stream.ToArray();
+                        }
+                        await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(fileBytes),
+                            new MediaOptions { ContentType = attachment.ContentType.MimeType, Slug = attachment.FileName });
+
+                    }
                 }
             }
-            
+
         }
 
-        internal static async Task<IEnumerable<DSMail>> ParseMessage(string messageId)
+        internal static async Task<ParsedMail> ParseMessage(string messageId)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.WEBJOB_STORAGE));
             var blobClient = storageAccount.CreateCloudBlobClient();
@@ -65,16 +86,22 @@ namespace DragonMail.IncomingMail
                 mimeMessage = MimeMessage.Load(new MemoryStream(ms.ToArray()));
                 await blob.DeleteAsync();
             }
-
             return MimeMessageToDSMail(messageId, mimeMessage);
         }
-        internal static IEnumerable<DSMail> MimeMessageToDSMail(string messageId, MimeMessage mimeMessage)
+        internal static ParsedMail MimeMessageToDSMail(string messageId, MimeMessage mimeMessage)
         {
-            var parsedMails = new List<DSMail>();
+            var parsedMails = new ParsedMail();
+            parsedMails.Mail = new List<DSMail>();
+
+            if (mimeMessage.Attachments != null)
+                parsedMails.Attachments = mimeMessage.Attachments.OfType<MimePart>().ToList();
+            else
+                parsedMails.Attachments = new List<MimePart>();
+
             foreach (var toAddress in mimeMessage.To)
             {
                 var mail = new DSMail();
-                parsedMails.Add(mail);
+                parsedMails.Mail.Add(mail);
 
                 if (mimeMessage.From != null && mimeMessage.From.Count > 0)
                 {
@@ -92,22 +119,9 @@ namespace DragonMail.IncomingMail
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
                 mail.SentDate = DateTime.Now;
                 mail.MessageId = messageId;
-
-                if (mimeMessage.Attachments == null)
-                    continue;
-
-                foreach (var attachment in mimeMessage.Attachments.OfType<MimePart>())
-                {
-                    var fileName = attachment.FileName;
-                    byte[] fileBytes;                    
-                    using (var stream = new MemoryStream())
-                    {
-                        attachment.ContentObject.DecodeTo(stream);
-                        fileBytes = stream.ToArray();
-                    }
-                    mail.AddAttachment(fileName, fileBytes);
-                }
+                mail.Attachments = parsedMails.Attachments.Select(a => a.FileName).ToList();
             }
+
             return parsedMails;
         }
     }

@@ -70,11 +70,23 @@ namespace DragonMail.Web.Controllers
             var response = await Client.ReadDocumentAsync(docUri);
             var mailDTO = (DSMail)(dynamic)response.Resource;
 
-            byte[] attachment;
-            if (mailDTO == null || !mailDTO.Attachments.TryGetValue(fileName, out attachment))
+            if (mailDTO == null)
                 return new HttpNotFoundResult();
 
-            return new FileContentResult(attachment, "application/octet-stream");
+            string attachmentLink = response.Resource.AttachmentsLink;
+            var attachment = Client.CreateAttachmentQuery(attachmentLink)
+                .Where(a => a.Id == fileName)
+                .AsEnumerable()
+                .FirstOrDefault();
+
+            if (attachment == null)
+                return new HttpNotFoundResult();
+            var mediaResponse = await Client.ReadMediaAsync(attachment.MediaLink);
+
+            byte[] bytes = new byte[mediaResponse.ContentLength];
+            await mediaResponse.Media.ReadAsync(bytes, 0, (int)mediaResponse.ContentLength);
+            return new FileContentResult(bytes, mediaResponse.ContentType);
+            
         }
     }
 }
