@@ -41,6 +41,10 @@ namespace DragonMail.DTO
                 miniContent = TextBody.Substring(0, 99);
             return miniContent;
         }
-        
+     
+        public string SubjectDisplay()
+        {
+            return string.IsNullOrEmpty(Subject) ? "[No Subject]" : Subject;
+        }   
     }
 }

@@ -38,7 +38,7 @@ else
                             @(mailMessage.Attachments == null ? 0 : mailMessage.Attachments.Count)
                         </span>
                         <h4 class="list-group-item-heading">@mailMessage.FromName</h4>
-                        @Html.ActionLink(mailMessage.Subject, "Index", new { mailBox = Model.MailBox, id = mailMessage.Id }, new { @class = "list-group-item-heading" })
+                        @Html.ActionLink(mailMessage.SubjectDisplay(), "Index", new { mailBox = Model.MailBox, id = mailMessage.Id }, new { @class = "list-group-item-heading" })
                         <p class="lit-group-item-text">@mailMessage.TextPreview()</p>
 
                     </div>
@@ -78,7 +78,7 @@ else
 
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    <h3 class="panel-title">@Model.SelectedItem.Subject:</h3>
+                                    <h3 class="panel-title">@Model.SelectedItem.SubjectDisplay():</h3>
                                 </div>
                                 <div class="panel-body">
                                     @if (!string.IsNullOrEmpty(Model.SelectedItem.HtmlBody))
