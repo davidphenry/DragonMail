@@ -18,11 +18,8 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DragonMail.IncomingMail
 {
-    public class ParsedMail
-    {
-        public List<DSMail> Mail { get; set; }
-        public List<MimePart> Attachments { get; set; }
-    }
+   
+  
     public class Functions
     {
         public static async Task ProcessQueueMessageAsync([QueueTrigger("incoming")] string message, TextWriter log)
@@ -56,14 +53,8 @@ namespace DragonMail.IncomingMail
 
                     foreach (var attachment in parsedMail.Attachments)
                     {
-                        byte[] fileBytes;
-                        using (var stream = new MemoryStream())
-                        {
-                            attachment.ContentObject.DecodeTo(stream);
-                            fileBytes = stream.ToArray();
-                        }
-                        await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(fileBytes),
-                            new MediaOptions { ContentType = attachment.ContentType.MimeType, Slug = attachment.FileName });
+                        await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(attachment.File),
+                            new MediaOptions { ContentType = attachment.ContentType, Slug = attachment.Name });
 
                     }
                 }
@@ -92,11 +83,21 @@ namespace DragonMail.IncomingMail
         {
             var parsedMails = new ParsedMail();
             parsedMails.Mail = new List<DSMail>();
+            parsedMails.Attachments = new List<ParsedAttachment>();
 
             if (mimeMessage.Attachments != null)
-                parsedMails.Attachments = mimeMessage.Attachments.OfType<MimePart>().ToList();
-            else
-                parsedMails.Attachments = new List<MimePart>();
+            {
+                foreach (var attachment in mimeMessage.Attachments.OfType<MimePart>().ToList())
+                {
+                    byte[] fileBytes;
+                    using (var stream = new MemoryStream())
+                    {
+                        attachment.ContentObject.DecodeTo(stream);
+                        fileBytes = stream.ToArray();
+                    }
+                    parsedMails.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
+                }
+            }
 
             foreach (var toAddress in mimeMessage.To)
             {
@@ -119,7 +120,7 @@ namespace DragonMail.IncomingMail
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
                 mail.SentDate = DateTime.Now;
                 mail.MessageId = messageId;
-                mail.Attachments = parsedMails.Attachments.Select(a => a.FileName).ToList();
+                mail.Attachments = parsedMails.Attachments.ToDictionary(a => a.Name, a => a.File.Length);
             }
 
             return parsedMails;

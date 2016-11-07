@@ -23,7 +23,7 @@ namespace DragonMail.DTO
         public string HtmlBody { get; set; }
         public DateTime? SentDate { get; set; }
         public string Queue { get; set; }       
-        public List<string> Attachments { get; set; }
+        public Dictionary<string, int> Attachments { get; set; }
         public static string MessageQueue(string email)
         {
             if (string.IsNullOrEmpty(email))

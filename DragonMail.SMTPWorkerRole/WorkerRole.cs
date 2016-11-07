@@ -16,6 +16,7 @@ using System.Text;
 using Newtonsoft.Json;
 using DragonMail.DTO;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.ApplicationInsights;
 
 namespace WorkerRole1
 {
@@ -34,6 +35,7 @@ namespace WorkerRole1
             listener.Start();
             Trace.WriteLine("Listening on " + endPoint.Address.ToString(), "Information");
 
+            var appInsights = new TelemetryClient();
             while (true)
             {
                 try
@@ -47,7 +49,7 @@ namespace WorkerRole1
                 }
                 catch (Exception x)
                 {
-                    Trace.WriteLine(x.Message, "Exception");
+                    appInsights.TrackException(x);
                 }
             }
 

@@ -63,10 +63,11 @@ else
                             <div class="col-md-12">
                                 Attachments:
                                 <ul class="list-group">
-                                    @foreach (string attachment in Model.SelectedItem.Attachments)
+                                    @foreach (KeyValuePair<string, int> attachment in Model.SelectedItem.Attachments)
                                     {
                                         <li class="list-group-item">
-                                            @Html.ActionLink(attachment, "Download", new { id = Model.SelectedItem.Id, fileName = attachment })
+                                            @Html.ActionLink(string.Format("{0} {1}mb", attachment.Key, attachment.Value % 1000),
+                                           "Download", new { id = Model.SelectedItem.Id, fileName = attachment.Key })
                                         </li>
                                     }
                                 </ul>
