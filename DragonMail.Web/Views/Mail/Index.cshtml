@@ -67,7 +67,7 @@ else
                                     {
                                         <li class="list-group-item">
                                             @Html.ActionLink(string.Format("{0} {1}mb", attachment.Key, attachment.Value / 1000000),
-                                           "Download", new { id = Model.SelectedItem.Id, fileName = attachment.Key })
+                                           "Download", new { id = Model.SelectedItem.id, fileName = attachment.Key })
                                         </li>
                                     }
                                 </ul>
