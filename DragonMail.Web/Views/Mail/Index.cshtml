@@ -28,17 +28,17 @@ else
                 @foreach (DSMail mailMessage in Model.MailMessages)
                 {
                     string css = "list-group-item";
-                    if (Model.SelectedItem != null && mailMessage.Id == Model.SelectedItem.Id)
+                    if (Model.SelectedItem != null && mailMessage.id == Model.SelectedItem.id)
                     {
                         css += " active";
                     }
-                    <div onclick="location.href ='@Url.Action("Index", "Mail", new { mailBox = Model.MailBox, id = mailMessage.Id })'" class="@css">
+                    <div onclick="location.href ='@Url.Action("Index", "Mail", new { mailBox = Model.MailBox, id = mailMessage.id })'" class="@css">
 
                         <span class="badge">
                             @(mailMessage.Attachments == null ? 0 : mailMessage.Attachments.Count)
                         </span>
                         <h4 class="list-group-item-heading">@mailMessage.FromName</h4>
-                        @Html.ActionLink(mailMessage.SubjectDisplay(), "Index", new { mailBox = Model.MailBox, id = mailMessage.Id }, new { @class = "list-group-item-heading" })
+                        @Html.ActionLink(mailMessage.SubjectDisplay(), "Index", new { mailBox = Model.MailBox, id = mailMessage.id }, new { @class = "list-group-item-heading" })
                         <p class="lit-group-item-text">@mailMessage.TextPreview()</p>
 
                     </div>
