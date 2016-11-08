@@ -3,6 +3,15 @@
     ViewBag.Title = "DragonMail";
 }
 
+@section scripts
+{
+<script type="text/javascript">
+    var doc = document.getElementById('FileFrame').contentWindow.document;
+    doc.open();
+    doc.write($('#FileSource').html());
+    doc.close();
+</script>
+}
 
 @if (string.IsNullOrEmpty(Model.MailBox))
 {
@@ -66,7 +75,7 @@ else
                                     @foreach (KeyValuePair<string, int> attachment in Model.SelectedItem.Attachments)
                                     {
                                         <li class="list-group-item">
-                                            @Html.ActionLink(string.Format("{0} {1}mb", attachment.Key, attachment.Value / 1000000),
+                                            @Html.ActionLink(string.Format("{0} {1:N2}mb", attachment.Key, attachment.Value / 1000000),
                                            "Download", new { id = Model.SelectedItem.id, fileName = attachment.Key })
                                         </li>
                                     }
@@ -84,8 +93,10 @@ else
                                 <div class="panel-body">
                                     @if (!string.IsNullOrEmpty(Model.SelectedItem.HtmlBody))
                                     {
-                                        @Html.Raw(Model.SelectedItem.HtmlBody);
-
+                                        <iframe id="FileFrame" src="about:blank" style="border:0;width:100%;height:1000px"></iframe>
+                                        <script id="FileSource" type="text/template">
+                                            @Html.Raw(Model.SelectedItem.HtmlBody)
+                                        </script>
                                     }
                                     else {
                                         @Html.Raw(Model.SelectedItem.TextBody);
