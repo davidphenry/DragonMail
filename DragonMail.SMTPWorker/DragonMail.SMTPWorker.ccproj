@@ -38,16 +38,26 @@
     <ServiceConfiguration Include="ServiceConfiguration.Cloud.cscfg" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DragonMail.POPWorkerRoleContent\" />
     <Folder Include="Profiles" />
     <Folder Include="DragonMail.SMTPWorkerRoleContent" />
   </ItemGroup>
   <ItemGroup>
+    <DiagnosticsConfiguration Include="DragonMail.POPWorkerRoleContent\diagnostics.wadcfgx" />
     <DiagnosticsConfiguration Include="DragonMail.SMTPWorkerRoleContent\diagnostics.wadcfgx" />
   </ItemGroup>
   <ItemGroup>
     <PublishProfile Include="Profiles\dragonmailProduction.azurePubxml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DragonMail.POPWorkerRole\DragonMail.POPWorkerRole.csproj">
+      <Name>DragonMail.POPWorkerRole</Name>
+      <Project>{c5d1dea6-8a70-4e03-995d-c20c565309e8}</Project>
+      <Private>True</Private>
+      <RoleType>Worker</RoleType>
+      <RoleName>DragonMail.POPWorkerRole</RoleName>
+      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
+    </ProjectReference>
     <ProjectReference Include="..\DragonMail.SMTPWorkerRole\DragonMail.SMTPWorkerRole.csproj">
       <Name>DragonMail.SMTPWorkerRole</Name>
       <Project>{9f9fe0be-6a44-4d8e-afe7-ad56c787b9e7}</Project>

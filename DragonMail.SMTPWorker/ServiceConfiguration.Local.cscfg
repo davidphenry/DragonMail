@@ -4,9 +4,18 @@
     <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
-      <Setting name="DataConnectionString" value="DefaultEndpointsProtocol=https;AccountName=dmcloudservices;AccountKey=BhWY9FglcMw0sdFo44RGtOR3qLiwUvlRyZa2LBI78227PJNiEhxLh4bnncFbpOSO5rbEbjSLCtMpl+oVoyZVtQ==" />
-      <Setting name="ProcessQueueName" value="incoming" />
-      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="3423e064-c35d-4a9f-bdc6-623ece649e88" />
+      <Setting name="DataConnectionString" value="" />
+      <Setting name="ProcessQueueName" value="" />
+      <Setting name="ProcessContainerName" value="" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="" />
+    </ConfigurationSettings>
+  </Role>
+  <Role name="DragonMail.POPWorkerRole">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="DocDBURI" value="" />
+      <Setting name="DocDBKey" value="" />
     </ConfigurationSettings>
   </Role>
 </ServiceConfiguration>

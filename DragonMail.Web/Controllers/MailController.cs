@@ -85,7 +85,7 @@ namespace DragonMail.Web.Controllers
 
             byte[] bytes = new byte[mediaResponse.ContentLength];
             await mediaResponse.Media.ReadAsync(bytes, 0, (int)mediaResponse.ContentLength);
-            return new FileContentResult(bytes, mediaResponse.ContentType);
+            return new FileContentResult(bytes, mediaResponse.ContentType) { FileDownloadName = fileName };
             
         }
     }

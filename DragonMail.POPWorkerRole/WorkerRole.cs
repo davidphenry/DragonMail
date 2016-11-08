@@ -9,18 +9,10 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using System.Net.Sockets;
-using System.IO;
-using Microsoft.WindowsAzure.Storage.Queue;
-using System.Text;
-using Newtonsoft.Json;
-using DragonMail.DTO;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.ApplicationInsights;
 
-namespace DragonMail.SMTPWorkerRole
+namespace DragonMail.POPWorkerRole
 {
-
     public class WorkerRole : RoleEntryPoint
     {
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -28,14 +20,15 @@ namespace DragonMail.SMTPWorkerRole
 
         public override void Run()
         {
-            Trace.TraceInformation("SMTPWorker is running");
-            var endPoint = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["SMTPEndpoint"].IPEndpoint;
+            Trace.TraceInformation("DragonMail.POPWorkerRole is running");
+            var endPoint = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["POPEndpoint"].IPEndpoint;
 
             var appInsights = new TelemetryClient();
-            var service = new SMTPService();
+            var service = new POPService();
             service.Run(e => appInsights.TrackException(e), endPoint);
-
         }
+
+
         public override bool OnStart()
         {
             // Set the maximum number of concurrent connections
@@ -46,22 +39,43 @@ namespace DragonMail.SMTPWorkerRole
 
             bool result = base.OnStart();
 
-            Trace.TraceInformation("SMTPWorker has been started");
+            Trace.TraceInformation("DragonMail.POPWorkerRole has been started");
 
             return result;
         }
 
         public override void OnStop()
         {
-            Trace.TraceInformation("SMTPWorker is stopping");
+            Trace.TraceInformation("DragonMail.POPWorkerRole is stopping");
 
             this.cancellationTokenSource.Cancel();
             this.runCompleteEvent.WaitOne();
 
             base.OnStop();
 
-            Trace.TraceInformation("SMTPWorker has stopped");
+            Trace.TraceInformation("DragonMail.POPWorkerRole has stopped");
         }
 
+        private async Task RunAsync(CancellationToken cancellationToken)
+        {
+            var appInsights = new TelemetryClient();
+            try
+            {
+                var endPoint = RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["POPEndpoint"].IPEndpoint;
+                var service = new POPService();
+                service.Run(e => appInsights.TrackException(e), endPoint);
+            }
+            catch (Exception x)
+            {
+                appInsights.TrackException(x);
+            }
+            // TODO: Replace the following with your own logic.
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                Trace.TraceInformation("Working");
+
+                await Task.Delay(1000);
+            }
+        }
     }
 }

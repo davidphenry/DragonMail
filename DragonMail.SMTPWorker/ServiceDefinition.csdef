@@ -5,11 +5,21 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
       <Setting name="DataConnectionString" />
       <Setting name="ProcessQueueName" />
-      <Setting name="ProcessContainerName"/>
+      <Setting name="ProcessContainerName" />
       <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" />
     </ConfigurationSettings>
     <Endpoints>
       <InputEndpoint name="SMTPEndpoint" protocol="tcp" port="25" />
+    </Endpoints>
+  </WorkerRole>
+  <WorkerRole name="DragonMail.POPWorkerRole" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" />
+      <Setting name="DocDBURI" />
+      <Setting name="DocDBKey" />
+    </ConfigurationSettings>
+    <Endpoints>
+      <InputEndpoint name="POPEndpoint" protocol="tcp" port="110" />
     </Endpoints>
   </WorkerRole>
 </ServiceDefinition>
