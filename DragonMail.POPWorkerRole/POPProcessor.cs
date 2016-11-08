@@ -53,14 +53,14 @@ namespace DragonMail.POPWorkerRole
             {
                 int messageNum = 0;
                 int.TryParse(listArr[1], out messageNum);
-                listResponse = string.Format("+OK {0} {1})", messageNum, mailBoxMail[messageNum - 1].Id);
+                listResponse = string.Format("+OK {0} {1})", messageNum, mailBoxMail[messageNum - 1].id);
             }
             else
             {
                 TCPServiceWorker.Write(client.GetStream(), "+OK");
                 for (int i = 1; i <= mailBoxMail.Count; i++)
                 {
-                    TCPServiceWorker.Write(client.GetStream(), string.Format("{0} {1}", i, mailBoxMail[i - 1].Id));
+                    TCPServiceWorker.Write(client.GetStream(), string.Format("{0} {1}", i, mailBoxMail[i - 1].id));
                 }
                 TCPServiceWorker.Write(client.GetStream(), ".");
             }
@@ -122,7 +122,7 @@ namespace DragonMail.POPWorkerRole
         private async Task<byte[]> GetRawMail(DSMail source)
         {
             var docUri = UriFactory.CreateDocumentUri(DTO.Constants.ConnectionSettings.DOCDB_DATABASE_NAME,
-                DTO.Constants.ConnectionSettings.DOCDB_COLLECTION_NAME, source.Id);
+                DTO.Constants.ConnectionSettings.DOCDB_COLLECTION_NAME, source.id);
             var response = await Client.ReadDocumentAsync(docUri);
 
             string attachmentLink = response.Resource.AttachmentsLink;

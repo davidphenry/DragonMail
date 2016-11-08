@@ -58,7 +58,7 @@ namespace DragonMail.Web.Controllers
             if (string.IsNullOrEmpty(id))
                 model.SelectedItem = model.MailMessages.FirstOrDefault();
             else
-                model.SelectedItem = model.MailMessages.FirstOrDefault(m => m.Id == id);
+                model.SelectedItem = model.MailMessages.FirstOrDefault(m => m.id == id);
 
 
             return View(model);
