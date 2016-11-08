@@ -86,9 +86,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\BasePOPCommand.cs" />
+    <Compile Include="Commands\ProcessDELPOPCommand.cs" />
+    <Compile Include="Commands\ProcessLISTPOPCommand.cs" />
+    <Compile Include="Commands\ProcessRETRPOPCommand.cs" />
+    <Compile Include="Commands\ProcessTOPPOPCommand.cs" />
+    <Compile Include="Commands\ProcessUIDLPOPCommand.cs" />
     <Compile Include="POPProcessor.cs" />
     <Compile Include="POPService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RawMailProvider.cs" />
     <Compile Include="WorkerRole.cs" />
   </ItemGroup>
   <ItemGroup>

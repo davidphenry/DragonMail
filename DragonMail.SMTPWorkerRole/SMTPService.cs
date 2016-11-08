@@ -14,9 +14,9 @@ namespace DragonMail.SMTPWorkerRole
 {
     public class SMTPService : DTO.TCPServiceWorker
     {
-        protected override void ProcessClient(TcpClient c)
+        protected override void ProcessClient(TcpClient client)
         {
-            string smptData = HandleRequest(c);
+            string smptData = HandleRequest(client.GetStream());
 
             var storageAccount = CloudStorageAccount.Parse(RoleEnvironment.GetConfigurationSettingValue("DataConnectionString"));
             var queueClient = storageAccount.CreateCloudQueueClient();
@@ -46,16 +46,16 @@ namespace DragonMail.SMTPWorkerRole
             queue.AddMessage(new CloudQueueMessage(id));
         }
 
-        public static string HandleRequest(TcpClient client)
+        public static string HandleRequest(NetworkStream clientStream)
         {
-            Write(client.GetStream(), "220 dragonmail -- Dynamic email server");
+            clientStream.Write("220 dragonmail -- Dynamic email server");
             string messageData = null;
             while (true)
             {
                 string tcpMessage = null;
                 try
                 {
-                    tcpMessage = Read(client.GetStream());
+                    tcpMessage = clientStream.Read();
                 }
                 catch (Exception e)
                 {
@@ -73,13 +73,13 @@ namespace DragonMail.SMTPWorkerRole
                 }
                 if (tcpMessage.StartsWith("EHLO") || tcpMessage.StartsWith("RCPT TO") || tcpMessage.StartsWith("MAIL FROM"))
                 {
-                    Write(client.GetStream(), "250 OK");
+                    clientStream.Write("250 OK");
                 }
                 else if (tcpMessage.StartsWith("DATA"))
                 {
-                    Write(client.GetStream(), "354 Start mail input; end with");
-                    messageData = ReadData(client.GetStream());
-                    Write(client.GetStream(), "250 OK");
+                    clientStream.Write("354 Start mail input; end with");
+                    messageData = ReadData(clientStream);
+                    clientStream.Write("250 OK");
                 }
             }
             return messageData;

@@ -42,71 +42,57 @@ namespace DragonMail.POPWorkerRole
 
         protected override void ProcessClient(TcpClient client)
         {
-            Write(client.GetStream(), "+OK POP3 server ready");
+            var clientStream = client.GetStream();
+            clientStream.Write("+OK POP3 server ready");
+
 
             string mailBox = null;
             //authorization
-            if (!AuthorizeClient(client, out mailBox))
+            if (!AuthorizeClient(clientStream, out mailBox))
             {
-                Write(client.GetStream(), "-ERR mailBox does not exist");
+                clientStream.Write("-ERR mailBox does not exist");
                 return;
             }
-            Write(client.GetStream(), string.Format("+OK {0} is a valid mailbox", mailBox));
+            clientStream.Write(string.Format("+OK {0} is a valid mailbox", mailBox));
 
             //transaction state
             var mailBoxMail = GetMail(mailBox);
-            var commandProcessor = new POPProcessor(client, mailBoxMail);
+            var commandProcessor = new POPCommandProcessor(clientStream, mailBoxMail, Client, CollectionUri);
             bool isInTransaction = false;
             while (true)
             {
-                string message = Read(client.GetStream());
+                string message = clientStream.Read();
                 if (string.IsNullOrEmpty(message) || message.StartsWith("QUIT"))
                 {
                     if (isInTransaction)
                     {
                         SaveMail(mailBoxMail);
                     }
-                    Write(client.GetStream(), "+OK bye");
+                    clientStream.Write("+OK bye");
                     break;
                 }
                 else if (message.StartsWith("NOOP"))
                 {
-                    Write(client.GetStream(), "+OK");
+                    clientStream.Write("+OK");
                 }
                 else if (message.StartsWith("STAT"))
                 {
                     string mailStats = string.Format("+OK {0} {1}", mailBoxMail.Count, mailBoxMail.Sum(m => m.RawMailSize));
-                    Write(client.GetStream(), mailStats);
+                    clientStream.Write(mailStats);
                 }
-                else if (message.StartsWith("UIDL"))
+                else
                 {
-                    commandProcessor.ProcessUIDL(message);
-                }
-                else if (message.StartsWith("LIST"))
-                {
-                    commandProcessor.ProcessList(message);
-                }
-                else if (message.StartsWith("TOP"))
-                {
-                    commandProcessor.ProcessTop(message);
-                }
-                else if (message.StartsWith("DELE"))
-                {
-                    commandProcessor.ProcessDelete(message);
-                }
-                else if (message.StartsWith("RETR"))
-                {
-                    commandProcessor.ProcessRetrieve(message);
+                    commandProcessor.MapTransactionCommand(message);
                 }
                 isInTransaction = true;
             }
         }
 
-        private bool AuthorizeClient(TcpClient client, out string mailBox)
+        private bool AuthorizeClient(NetworkStream clientStream, out string mailBox)
         {
             mailBox = null;
 
-            string message = Read(client.GetStream());
+            string message = clientStream.Read();
             if (string.IsNullOrEmpty(message))
                 return false;
 
@@ -114,15 +100,15 @@ namespace DragonMail.POPWorkerRole
             {
                 if (string.Compare(message, "capa\r\n", true) == 0)
                 {
-                    Write(client.GetStream(), "+OK List of capabilities follows");
-                    Write(client.GetStream(), "USER");
-                    Write(client.GetStream(), "UIDL");
-                    Write(client.GetStream(), ".");
+                    clientStream.Write("+OK List of capabilities follows");
+                    clientStream.Write("USER");
+                    clientStream.Write("UIDL");
+                    clientStream.Write(".");
                 }
                 else if (string.Compare(message, "auth \r\n", true) == 0)
-                    Write(client.GetStream(), "-ERR no");
+                    clientStream.Write("-ERR no");
 
-                message = Read(client.GetStream());
+                message = clientStream.Read();
             }
 
             var authUser = message.Split(' ');
@@ -133,10 +119,10 @@ namespace DragonMail.POPWorkerRole
                 return false;
 
             mailBox = authUser[1].Split('@')[0];
-            Write(client.GetStream(), string.Format("+OK {0} is a valid mailbox", mailBox));
+            clientStream.Write(string.Format("+OK {0} is a valid mailbox", mailBox));
 
             //password
-            message = Read(client.GetStream());
+            message = clientStream.Read();
             if (string.IsNullOrEmpty(message))
                 return false;
 
@@ -174,6 +160,6 @@ namespace DragonMail.POPWorkerRole
             Task.WaitAll(tasks.ToArray());
         }
 
-       
+
     }
 }

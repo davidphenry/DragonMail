@@ -43,6 +43,8 @@
     <Compile Include="Constants\ConnectionSettings.cs" />
     <Compile Include="DSMail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StreamExtensions.cs" />
+    <Compile Include="TCPServiceCommand.cs" />
     <Compile Include="TCPServiceWorker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

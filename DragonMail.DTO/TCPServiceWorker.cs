@@ -53,30 +53,5 @@ namespace DragonMail.DTO
 
         protected abstract void ProcessClient(TcpClient c);
 
-        public static void Write(Stream clientStream, string strMessage)
-        {
-            //NetworkStream clientStream = client.GetStream();
-            ASCIIEncoding encoder = new ASCIIEncoding();
-            byte[] buffer = encoder.GetBytes(strMessage + "\r\n");
-            Write(clientStream, buffer);
-        }
-        public static void Write(Stream clientStream, byte[] buffer)
-        {
-            clientStream.Write(buffer, 0, buffer.Length);
-            clientStream.Flush();
-        }
-
-        public static string Read(Stream clientStream)
-        {
-            byte[] messageBytes = new byte[8192];
-            int bytesRead = 0;
-            //NetworkStream clientStream = client.GetStream();
-            ASCIIEncoding encoder = new ASCIIEncoding();
-            bytesRead = clientStream.Read(messageBytes, 0, 8192);
-            string strMessage = encoder.GetString(messageBytes, 0, bytesRead);
-            return strMessage;
-        }
-
-
     }
 }
