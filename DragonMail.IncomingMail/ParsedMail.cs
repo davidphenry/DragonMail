@@ -11,5 +11,6 @@ namespace DragonMail.IncomingMail
     {
         public List<DSMail> Mail { get; set; }
         public List<ParsedAttachment> Attachments { get; set; }
+        public byte[] RawMail { get; set; }
     }
 }

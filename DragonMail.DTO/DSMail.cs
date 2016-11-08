@@ -24,6 +24,9 @@ namespace DragonMail.DTO
         public DateTime? SentDate { get; set; }
         public string Queue { get; set; }       
         public Dictionary<string, int> Attachments { get; set; }
+        public int RawMailSize { get; set; }
+
+        public int MessageStatus { get; set; }
         public static string MessageQueue(string email)
         {
             if (string.IsNullOrEmpty(email))

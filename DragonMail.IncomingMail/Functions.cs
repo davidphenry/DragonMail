@@ -46,7 +46,11 @@ namespace DragonMail.IncomingMail
             {
                 foreach (var message in parsedMail.Mail)
                 {
+                    message.RawMailSize = parsedMail.RawMail.Length;
                     var response = await client.CreateDocumentAsync(messageUri, message);
+
+                    await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(parsedMail.RawMail),
+                        new MediaOptions { ContentType = "application/octect-stream", Slug = message.MessageId});
 
                     if (!parsedMail.Attachments.Any())
                         continue;
@@ -71,19 +75,23 @@ namespace DragonMail.IncomingMail
             var blob = container.GetBlockBlobReference(messageId);
 
             MimeMessage mimeMessage;
+            byte[] rawMail = null;
             using (MemoryStream ms = new MemoryStream())
             {
                 await blob.DownloadToStreamAsync(ms);
-                mimeMessage = MimeMessage.Load(new MemoryStream(ms.ToArray()));
+                rawMail = ms.ToArray();
+                mimeMessage = MimeMessage.Load(new MemoryStream(rawMail));
                 await blob.DeleteAsync();
             }
-            return MimeMessageToDSMail(messageId, mimeMessage);
+            var parsedMail = MimeMessageToDSMail(messageId, mimeMessage);
+            parsedMail.RawMail = rawMail;
+            return parsedMail;
         }
         internal static ParsedMail MimeMessageToDSMail(string messageId, MimeMessage mimeMessage)
         {
-            var parsedMails = new ParsedMail();
-            parsedMails.Mail = new List<DSMail>();
-            parsedMails.Attachments = new List<ParsedAttachment>();
+            var parsedMail = new ParsedMail();
+            parsedMail.Mail = new List<DSMail>();
+            parsedMail.Attachments = new List<ParsedAttachment>();
 
             if (mimeMessage.Attachments != null)
             {
@@ -95,14 +103,14 @@ namespace DragonMail.IncomingMail
                         attachment.ContentObject.DecodeTo(stream);
                         fileBytes = stream.ToArray();
                     }
-                    parsedMails.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
+                    parsedMail.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
                 }
             }
 
             foreach (var toAddress in mimeMessage.To)
             {
                 var mail = new DSMail();
-                parsedMails.Mail.Add(mail);
+                parsedMail.Mail.Add(mail);
 
                 if (mimeMessage.From != null && mimeMessage.From.Count > 0)
                 {
@@ -120,10 +128,10 @@ namespace DragonMail.IncomingMail
                 mail.Queue = DSMail.MessageQueue(mail.ToEmail);
                 mail.SentDate = DateTime.Now;
                 mail.MessageId = messageId;
-                mail.Attachments = parsedMails.Attachments.ToDictionary(a => a.Name, a => a.File.Length);
+                mail.Attachments = parsedMail.Attachments.ToDictionary(a => a.Name, a => a.File.Length);
             }
 
-            return parsedMails;
+            return parsedMail;
         }
     }
 }
