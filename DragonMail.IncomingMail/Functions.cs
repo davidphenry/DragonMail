@@ -26,139 +26,17 @@ namespace DragonMail.IncomingMail
         {
             try
             {
-                var dsMail = await ParseMessage(message);
-                await WriteMessage(dsMail);
+                var storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.WEBJOB_STORAGE));
+                string docDBendPoint = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
+                string docDBKey = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_KEY);
+
+                IMailParser parser = new IncomingMailParser(docDBendPoint, docDBKey, storageAccount);
+                await parser.ParseMessage(message);
             }
             catch (Exception e)
             {
                 throw;
             }
-        }
-        internal static async Task WriteMessage(ParsedMail parsedMail)
-        {
-            string docDBendPoint = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_ENDPOINT_URI);
-            string docDBKey = CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.DOCDB_KEY);
-
-            Uri messageUri = UriFactory.CreateDocumentCollectionUri(DTO.Constants.ConnectionSettings.DOCDB_DATABASE_NAME,
-                DTO.Constants.ConnectionSettings.DOCDB_COLLECTION_NAME);
-
-            using (var client = new DocumentClient(new Uri(docDBendPoint), docDBKey))
-            {
-                foreach (var message in parsedMail.Mail)
-                {
-                    message.RawMailSize = parsedMail.RawMail.Length;
-                    var response = await client.CreateDocumentAsync(messageUri, message);
-
-                    await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(parsedMail.RawMail),
-                        new MediaOptions { ContentType = "application/octect-stream", Slug = message.MessageId });
-
-                    if (!parsedMail.Attachments.Any())
-                        continue;
-
-                    foreach (var attachment in parsedMail.Attachments)
-                    {
-                        await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(attachment.File),
-                            new MediaOptions { ContentType = attachment.ContentType, Slug = attachment.Name });
-
-                    }
-                }
-            }
-
-        }
-
-        internal static async Task<ParsedMail> ParseMessage(string messageId)
-        {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting(DTO.Constants.ConnectionSettings.WEBJOB_STORAGE));
-            var blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("rawmail");
-            await container.CreateIfNotExistsAsync();
-            var blob = container.GetBlockBlobReference(messageId);
-
-            MimeMessage mimeMessage;
-            byte[] rawMail = null;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                await blob.DownloadToStreamAsync(ms);
-                rawMail = ms.ToArray();
-                mimeMessage = MimeMessage.Load(new MemoryStream(rawMail));
-                await blob.DeleteAsync();
-            }
-            var parsedMail = MimeMessageToDSMail(messageId, mimeMessage);
-            parsedMail.RawMail = rawMail;
-            return parsedMail;
-        }
-        internal static ParsedMail MimeMessageToDSMail(string messageId, MimeMessage mimeMessage)
-        {
-            var parsedMail = new ParsedMail();
-            parsedMail.Mail = new List<DSMail>();
-            parsedMail.Attachments = new List<ParsedAttachment>();
-
-            //find inline attachments
-            var attachments = new List<MimePart>();
-            if (mimeMessage.BodyParts != null)
-            {
-                attachments.AddRange(mimeMessage.BodyParts.OfType<MimePart>()
-                    .Where(p => !string.IsNullOrEmpty(p.FileName) &&
-                    (p.ContentDisposition == null || string.IsNullOrEmpty(p.ContentDisposition.Disposition) || p.ContentDisposition.Disposition == ContentDisposition.Inline))
-                    .ToList());
-            }
-            if (mimeMessage.Attachments != null)
-            {
-                attachments.AddRange(mimeMessage.Attachments.OfType<MimePart>());
-
-                foreach (var attachment in mimeMessage.Attachments.OfType<MessagePart>())
-                    AddAttachment(parsedMail, attachment);
-            }
-
-            foreach (var attachment in attachments)
-                AddAttachment(parsedMail, attachment);
-
-            foreach (var toAddress in mimeMessage.To)
-            {
-                var mail = new DSMail();
-                parsedMail.Mail.Add(mail);
-
-                if (mimeMessage.From != null && mimeMessage.From.Count > 0)
-                {
-                    var firstFrom = mimeMessage.From.First() as MailboxAddress;
-                    mail.FromEmail = firstFrom.Address;
-                    mail.FromName = firstFrom.Name;
-                }
-                var toMailBox = toAddress as MailboxAddress;
-                mail.ToName = toMailBox.Name;
-                mail.ToEmail = toMailBox.Address;
-
-                mail.Subject = mimeMessage.Subject;
-                mail.HtmlBody = mimeMessage.HtmlBody;
-                mail.TextBody = mimeMessage.TextBody;
-                mail.Queue = DSMail.MessageQueue(mail.ToEmail);
-                mail.SentDate = DateTime.Now;
-                mail.MessageId = messageId;
-                mail.Attachments = parsedMail.Attachments.ToDictionary(a => a.Name, a => a.File.Length);
-            }
-
-            return parsedMail;
-        }
-
-        internal static void AddAttachment(ParsedMail parsedMail, MimePart attachment)
-        {
-            byte[] fileBytes;
-            using (var stream = new MemoryStream())
-            {
-                attachment.ContentObject.DecodeTo(stream);
-                fileBytes = stream.ToArray();
-            }
-            parsedMail.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
-        }
-        internal static void AddAttachment(ParsedMail parsedMail, MessagePart attachment)
-        {
-            byte[] fileBytes;
-            using (var stream = new MemoryStream())
-            {
-                attachment.Message.WriteTo(stream);
-                fileBytes = stream.ToArray();
-            }
-            parsedMail.Attachments.Add(new ParsedAttachment(string.Format("{0}_{1}.eml", attachment.Message.Subject, parsedMail.Attachments.Count + 1), fileBytes, attachment.ContentType.MimeType));
         }
     }
 }
