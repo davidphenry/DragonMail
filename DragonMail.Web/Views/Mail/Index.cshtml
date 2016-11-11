@@ -4,13 +4,23 @@
     ViewBag.Title = "DragonMail";
 }
 
+@section meta {
+   @if (!string.IsNullOrEmpty(Model.MailBox))
+   {
+    <meta http-equiv="refresh" content="300;URL=/?mailBox=@Model.MailBox">
+   }
+}
+
 @section scripts
 {
 <script type="text/javascript">
-    var doc = document.getElementById('FileFrame').contentWindow.document;
-    doc.open();
-    doc.write($('#FileSource').html());
-    doc.close();
+    var fileFrame = document.getElementById('FileFrame');
+    if (fileFrame){
+        var doc = fileFrame.contentWindow.document;
+        doc.open();
+        doc.write($('#FileSource').html());
+        doc.close();
+    }
 </script>
 }
 
