@@ -98,19 +98,20 @@ namespace DragonMail.IncomingMail
             if (mimeMessage.BodyParts != null)
             {
                 attachments.AddRange(mimeMessage.BodyParts.OfType<MimePart>()
-                    .Where(p => !string.IsNullOrEmpty(p.FileName) && 
+                    .Where(p => !string.IsNullOrEmpty(p.FileName) &&
                     (p.ContentDisposition == null || string.IsNullOrEmpty(p.ContentDisposition.Disposition) || p.ContentDisposition.Disposition == ContentDisposition.Inline))
                     .ToList());
             }
             if (mimeMessage.Attachments != null)
             {
                 attachments.AddRange(mimeMessage.Attachments.OfType<MimePart>());
+
+                foreach (var attachment in mimeMessage.Attachments.OfType<MessagePart>())
+                    AddAttachment(parsedMail, attachment);
             }
 
             foreach (var attachment in attachments)
-            {
                 AddAttachment(parsedMail, attachment);
-            }
 
             foreach (var toAddress in mimeMessage.To)
             {
@@ -148,6 +149,16 @@ namespace DragonMail.IncomingMail
                 fileBytes = stream.ToArray();
             }
             parsedMail.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
+        }
+        internal static void AddAttachment(ParsedMail parsedMail, MessagePart attachment)
+        {
+            byte[] fileBytes;
+            using (var stream = new MemoryStream())
+            {
+                attachment.Message.WriteTo(stream);
+                fileBytes = stream.ToArray();
+            }
+            parsedMail.Attachments.Add(new ParsedAttachment(string.Format("{0}_{1}.eml", attachment.Message.Subject, parsedMail.Attachments.Count + 1), fileBytes, attachment.ContentType.MimeType));
         }
     }
 }
