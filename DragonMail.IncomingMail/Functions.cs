@@ -18,8 +18,8 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace DragonMail.IncomingMail
 {
-   
-  
+
+
     public class Functions
     {
         public static async Task ProcessQueueMessageAsync([QueueTrigger("incoming")] string message, TextWriter log)
@@ -50,7 +50,7 @@ namespace DragonMail.IncomingMail
                     var response = await client.CreateDocumentAsync(messageUri, message);
 
                     await client.CreateAttachmentAsync(response.Resource.AttachmentsLink, new MemoryStream(parsedMail.RawMail),
-                        new MediaOptions { ContentType = "application/octect-stream", Slug = message.MessageId});
+                        new MediaOptions { ContentType = "application/octect-stream", Slug = message.MessageId });
 
                     if (!parsedMail.Attachments.Any())
                         continue;
@@ -93,18 +93,23 @@ namespace DragonMail.IncomingMail
             parsedMail.Mail = new List<DSMail>();
             parsedMail.Attachments = new List<ParsedAttachment>();
 
+            //find inline attachments
+            var attachments = new List<MimePart>();
+            if (mimeMessage.BodyParts != null)
+            {
+                attachments.AddRange(mimeMessage.BodyParts.OfType<MimePart>()
+                    .Where(p => !string.IsNullOrEmpty(p.FileName) && 
+                    (p.ContentDisposition == null || string.IsNullOrEmpty(p.ContentDisposition.Disposition) || p.ContentDisposition.Disposition == ContentDisposition.Inline))
+                    .ToList());
+            }
             if (mimeMessage.Attachments != null)
             {
-                foreach (var attachment in mimeMessage.Attachments.OfType<MimePart>().ToList())
-                {
-                    byte[] fileBytes;
-                    using (var stream = new MemoryStream())
-                    {
-                        attachment.ContentObject.DecodeTo(stream);
-                        fileBytes = stream.ToArray();
-                    }
-                    parsedMail.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
-                }
+                attachments.AddRange(mimeMessage.Attachments.OfType<MimePart>());
+            }
+
+            foreach (var attachment in attachments)
+            {
+                AddAttachment(parsedMail, attachment);
             }
 
             foreach (var toAddress in mimeMessage.To)
@@ -132,6 +137,17 @@ namespace DragonMail.IncomingMail
             }
 
             return parsedMail;
+        }
+
+        internal static void AddAttachment(ParsedMail parsedMail, MimePart attachment)
+        {
+            byte[] fileBytes;
+            using (var stream = new MemoryStream())
+            {
+                attachment.ContentObject.DecodeTo(stream);
+                fileBytes = stream.ToArray();
+            }
+            parsedMail.Attachments.Add(new ParsedAttachment(attachment.FileName, fileBytes, attachment.ContentType.MimeType));
         }
     }
 }

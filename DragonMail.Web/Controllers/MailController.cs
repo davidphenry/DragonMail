@@ -41,7 +41,7 @@ namespace DragonMail.Web.Controllers
         }
 
         // GET: Mail
-        public ActionResult Index(string id = null, string mailBox = null)
+        public ActionResult Index(string id = null, string mailBox = null, string mailHost = "dragonmail.dragonspears.com")
         {
             var model = new MailViewModel();
 
@@ -49,7 +49,7 @@ namespace DragonMail.Web.Controllers
                 return View(model);
 
             model.MailBox = mailBox;
-            string queueName = DSMail.MessageQueue(string.Format("{0}@dragonmail.dragonspears.com", mailBox));
+            string queueName = DSMail.MessageQueue(string.Format("{0}@{1}", mailBox, mailHost));
             var mailQuery = Client.CreateDocumentQuery<DSMail>(CollectionUri, new FeedOptions { MaxItemCount = -1 })
                 .Where(m => m.Queue == queueName)
                 .OrderByDescending(m => m.SentDate);
